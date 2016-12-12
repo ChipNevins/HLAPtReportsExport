@@ -1,0 +1,11 @@
+c:\users\arthur\documents\visual studio 2015\Projects\HLAPtReportsExport\HLAPtReportsExport\bin\Debug\HLAPtReportsExport.exe.config
+C:\Users\Arthur\documents\visual studio 2015\Projects\HLAPtReportsExport\HLAPtReportsExport\obj\Debug\HLAPtReportsExport.Form1.resources
+C:\Users\Arthur\documents\visual studio 2015\Projects\HLAPtReportsExport\HLAPtReportsExport\obj\Debug\HLAPtReportsExport.Properties.Resources.resources
+C:\Users\Arthur\documents\visual studio 2015\Projects\HLAPtReportsExport\HLAPtReportsExport\obj\Debug\HLAPtReportsExport.csproj.GenerateResource.Cache
+C:\Users\Arthur\documents\visual studio 2015\Projects\HLAPtReportsExport\HLAPtReportsExport\bin\Debug\HLAPtReportsExport.exe
+C:\Users\Arthur\documents\visual studio 2015\Projects\HLAPtReportsExport\HLAPtReportsExport\bin\Debug\HLAPtReportsExport.pdb
+C:\Users\Arthur\documents\visual studio 2015\Projects\HLAPtReportsExport\HLAPtReportsExport\obj\Debug\HLAPtReportsExport.exe
+C:\Users\Arthur\documents\visual studio 2015\Projects\HLAPtReportsExport\HLAPtReportsExport\obj\Debug\HLAPtReportsExport.pdb
+C:\Users\Arthur\Documents\Visual Studio 2015\Projects\HLAPtReportsExport\HLAPtReportsExport\bin\Debug\itextsharp.dll
+C:\Users\Arthur\Documents\Visual Studio 2015\Projects\HLAPtReportsExport\HLAPtReportsExport\bin\Debug\itextsharp.xml
+C:\Users\Arthur\documents\visual studio 2015\Projects\HLAPtReportsExport\HLAPtReportsExport\obj\Debug\HLAPtReportsExport.csprojResolveAssemblyReference.cache
