@@ -42,6 +42,7 @@ namespace HLAPtReportsExport
         {
             string CS = ConfigurationManager.ConnectionStrings["HLA_DBCS"].ConnectionString;
             DateTime dt;
+            string fileName;
             DataSet ds = new DataSet();
 
             using (SqlConnection con = new SqlConnection(CS))
@@ -55,14 +56,22 @@ namespace HLAPtReportsExport
             ds.Tables[1].TableName = "ReportItems";
             ds.Tables[2].TableName = "ReportComments";
 
+            // Get R# to create the document name
+            fileName = "PK" + aReportPk.ToString();
+            foreach (DataRow dr in ds.Tables["ReportItems"].Rows)
+            {
+                if (dr["strRelationToPt"].ToString().ToUpper() == "PATIENT")
+                {
+                    if (dr["strrefnum"].ToString() !="")
+                    {
+                        fileName = "R" + dr["strrefnum"].ToString();
+                    }
 
+                }
 
-            //dataGridView1.DataSource = ds.Tables["ReportHdrs"];
-           // dataGridView2.DataSource = ds.Tables["ReportItems"];
-            //dataGridView3.DataSource = ds.Tables["ReportComments"];
-
+            }
             Document document = new Document();
-            PdfWriter.GetInstance(document, new FileStream(@"C:\Users\Arthur\sample2.pdf", FileMode.OpenOrCreate));
+            PdfWriter.GetInstance(document, new FileStream(@"C:\Users\Arthur\" + fileName + ".pdf", FileMode.OpenOrCreate));
             document.Open();
             iTextSharp.text.Font font5 = iTextSharp.text.FontFactory.GetFont(FontFactory.HELVETICA, 5);
             iTextSharp.text.Font font4 = iTextSharp.text.FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 6);
