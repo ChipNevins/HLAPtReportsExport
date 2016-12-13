@@ -28,17 +28,37 @@ namespace HLAPtReportsExport
             // read data from user control, retrieve pk's for this date
             // to be done
             // call builder with one pk
-            int aReportPk;
-            if (Int32.TryParse(textBox1.Text, out aReportPk))
-                BuildReport(aReportPk);
+            int reportYear, reportPk;
+            int nbrReportsWritten = 0;
+            string reportName;
+            const bool TOP20 = true;
+            if (Int32.TryParse(textBox1.Text, out reportYear))
+            {
+                string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+                DataSet dsReportPks = new DataSet();
+                using (SqlConnection conPk = new SqlConnection(CS))
+                {
+                    SqlDataAdapter da = new SqlDataAdapter("spGetPatientReportPkForYear", conPk);
+                    da.SelectCommand.CommandType = CommandType.StoredProcedure;
+                    da.SelectCommand.Parameters.AddWithValue("@yearId", reportYear);
+                    da.Fill(dsReportPks);
+                    foreach (DataRow dr in dsReportPks.Tables[0].Rows)
+                    {
+                        if (TOP20 & (++nbrReportsWritten > 20)) break;
+                        Int32.TryParse(dr.ItemArray[0].ToString(), out reportPk);
+                        reportName = dr["strreportname"].ToString();
+                        BuildReport(reportName, reportPk);
+                    }
+                }
+            }
             else
             {
-                Console.WriteLine("Cannot convert to number");
+                Console.WriteLine("Cannot convert input value to Year");
                 return;
             }
         }
 
-        private void BuildReport(int aReportPk)
+        private void BuildReport(string reportName, int aReportPk)
         {
             string CS = ConfigurationManager.ConnectionStrings["HLA_DBCS"].ConnectionString;
             DateTime dt;
@@ -70,101 +90,106 @@ namespace HLAPtReportsExport
                 }
 
             }
-            Document document = new Document();
-            PdfWriter.GetInstance(document, new FileStream(@"C:\Users\Arthur\" + fileName + ".pdf", FileMode.OpenOrCreate));
-            document.Open();
-            iTextSharp.text.Font font5 = iTextSharp.text.FontFactory.GetFont(FontFactory.HELVETICA, 5);
-            iTextSharp.text.Font font4 = iTextSharp.text.FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 6);
-            document.Add(new Paragraph("Report Headers", font5));
-
-            foreach (DataRow drRep in ds.Tables["ReportHdrs"].Rows)
+            using (Document document = new Document())
             {
-                // Header table
-                PdfPTable tableRep = new PdfPTable(7);
-                tableRep.SpacingAfter = 5;
-                tableRep.SetWidths(new int[] { 12, 8, 40, 30, 40, 12, 12 });
-                tableRep.AddCell(new Phrase("ReportId", font4));
-                tableRep.AddCell(new Phrase("Seq", font4));
-                tableRep.AddCell(new Phrase("Report Name", font4));
-                tableRep.AddCell(new Phrase("Provider Name", font4));
-                tableRep.AddCell(new Phrase("Hospital Name", font4));
-                tableRep.AddCell(new Phrase("Original Date", font4));
-                tableRep.AddCell(new Phrase("Updated Date", font4));
-                tableRep.AddCell(new Phrase(drRep["pkReportId"].ToString(), font5));
-                tableRep.AddCell(new Phrase(drRep["pkReportSeq"].ToString(), font5));
-                tableRep.AddCell(new Phrase(drRep["strreportname"].ToString(), font5));
-                tableRep.AddCell(new Phrase(drRep["strProviderName"].ToString(), font5));
-                tableRep.AddCell(new Phrase(drRep["strHospitalName"].ToString(), font5));
-                tableRep.AddCell(new Phrase(DateString(drRep["dtoriginaldate"].ToString()), font5));
-                tableRep.AddCell(new Phrase(DateString(drRep["dtupdateddate"].ToString()), font5));
-                document.Add(tableRep);
+                string myPath = ConfigurationManager.AppSettings["Path"];
+                PdfWriter.GetInstance(document, new FileStream(myPath + fileName + ".pdf", FileMode.OpenOrCreate));
+                document.Open();
+                iTextSharp.text.Font font5 = iTextSharp.text.FontFactory.GetFont(FontFactory.HELVETICA, 5);
+                iTextSharp.text.Font font6 = iTextSharp.text.FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 6);
+                iTextSharp.text.Font font14 = iTextSharp.text.FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 14);
+                document.Add(new Paragraph(reportName, font14));
 
-                // Items table
-                PdfPTable tableItem = new PdfPTable(10);
-                tableItem.SetWidths(new int[] { 30, 10, 10, 10, 10, 10, 10, 10, 10, 10 });
-                tableItem.SpacingAfter = 5;
-                tableItem.AddCell(new Phrase("Name", font4));
-                tableItem.AddCell(new Phrase("Relation", font4));
-                tableItem.AddCell(new Phrase("R#", font4));
-                tableItem.AddCell(new Phrase("Accession Date", font4));
-                tableItem.AddCell(new Phrase("A", font4));
-                tableItem.AddCell(new Phrase("B", font4));
-                tableItem.AddCell(new Phrase("C", font4));
-                tableItem.AddCell(new Phrase("DRB1", font4));
-                tableItem.AddCell(new Phrase("DRB345", font4));
-                tableItem.AddCell(new Phrase("DQB1", font4));
-                foreach (DataRow drItem in ds.Tables["ReportItems"].Rows)
+                foreach (DataRow drRep in ds.Tables["ReportHdrs"].Rows)
                 {
-                    if (drRep.ItemArray[1].ToString() == drItem.ItemArray[1].ToString())
+                    // Header table
+                    PdfPTable tableRep = new PdfPTable(7);
+                    tableRep.SpacingBefore = 10;
+                    tableRep.SpacingAfter = 5;
+                    tableRep.SetWidths(new int[] { 12, 8, 40, 30, 40, 12, 12 });
+                    tableRep.AddCell(new Phrase("ReportId", font6));
+                    tableRep.AddCell(new Phrase("Version", font6));
+                    tableRep.AddCell(new Phrase("Report Name", font6));
+                    tableRep.AddCell(new Phrase("Provider Name", font6));
+                    tableRep.AddCell(new Phrase("Hospital Name", font6));
+                    tableRep.AddCell(new Phrase("Original Date", font6));
+                    tableRep.AddCell(new Phrase("Updated Date", font6));
+                    tableRep.AddCell(new Phrase(drRep["pkReportId"].ToString(), font5));
+                    tableRep.AddCell(new Phrase(drRep["pkReportSeq"].ToString(), font5));
+                    tableRep.AddCell(new Phrase(drRep["strreportname"].ToString(), font5));
+                    tableRep.AddCell(new Phrase(drRep["strProviderName"].ToString(), font5));
+                    tableRep.AddCell(new Phrase(drRep["strHospitalName"].ToString(), font5));
+                    tableRep.AddCell(new Phrase(DateString(drRep["dtoriginaldate"].ToString()), font5));
+                    tableRep.AddCell(new Phrase(DateString(drRep["dtupdateddate"].ToString()), font5));
+                    document.Add(tableRep);
+
+                    // Items table
+                    PdfPTable tableItem = new PdfPTable(10);
+                    tableItem.SetWidths(new int[] { 30, 10, 10, 10, 10, 10, 10, 10, 10, 10 });
+                    tableItem.SpacingAfter = 5;
+                    tableItem.AddCell(new Phrase("Name", font6));
+                    tableItem.AddCell(new Phrase("Relation", font6));
+                    tableItem.AddCell(new Phrase("R#", font6));
+                    tableItem.AddCell(new Phrase("Received Date", font6));
+                    tableItem.AddCell(new Phrase("A", font6));
+                    tableItem.AddCell(new Phrase("B", font6));
+                    tableItem.AddCell(new Phrase("C", font6));
+                    tableItem.AddCell(new Phrase("DRB1", font6));
+                    tableItem.AddCell(new Phrase("DRB345", font6));
+                    tableItem.AddCell(new Phrase("DQB1", font6));
+                    foreach (DataRow drItem in ds.Tables["ReportItems"].Rows)
                     {
-                        tableItem.AddCell(new Phrase(drItem["strPersonname"].ToString(), font5));
-                        tableItem.AddCell(new Phrase(drItem["strRelationToPt"].ToString(), font5));
-                        tableItem.AddCell(new Phrase(drItem["strRefNum"].ToString(), font5));
-                        if (drItem["dtAccessionDate"].ToString() == "")
+                        if (drRep.ItemArray[1].ToString() == drItem.ItemArray[1].ToString())
                         {
+                            tableItem.AddCell(new Phrase(drItem["strPersonname"].ToString(), font5));
+                            tableItem.AddCell(new Phrase(drItem["strRelationToPt"].ToString(), font5));
+                            tableItem.AddCell(new Phrase(drItem["strRefNum"].ToString(), font5));
+                            if (drItem["dtAccessionDate"].ToString() == "")
+                            {
+                                tableItem.AddCell(new Phrase(" ", font5));
+                            }
+                            else
+                            {
+                                dt = DateTime.Parse(drItem["dtBleedDate"].ToString());
+                                tableItem.AddCell(new Phrase(dt.ToShortDateString(), font5));
+                            }
+                            tableItem.AddCell(new Phrase(drItem["strA1"].ToString(), font5));
+                            tableItem.AddCell(new Phrase(drItem["strB1"].ToString(), font5));
+                            tableItem.AddCell(new Phrase(drItem["strCw1"].ToString(), font5));
+                            tableItem.AddCell(new Phrase(drItem["strDrb11"].ToString(), font5));
+                            tableItem.AddCell(new Phrase(drItem["strDRB3451"].ToString(), font5));
+                            tableItem.AddCell(new Phrase(drItem["strDqb11"].ToString(), font5));
                             tableItem.AddCell(new Phrase(" ", font5));
+                            tableItem.AddCell(new Phrase(" ", font5));
+                            tableItem.AddCell(new Phrase(" ", font5));
+                            tableItem.AddCell(new Phrase(" ", font5));
+                            tableItem.AddCell(new Phrase(drItem["strA2"].ToString(), font5));
+                            tableItem.AddCell(new Phrase(drItem["strB2"].ToString(), font5));
+                            tableItem.AddCell(new Phrase(drItem["strCw2"].ToString(), font5));
+                            tableItem.AddCell(new Phrase(drItem["strDrb12"].ToString(), font5));
+                            tableItem.AddCell(new Phrase(drItem["strDRB3452"].ToString(), font5));
+                            tableItem.AddCell(new Phrase(drItem["strDqb12"].ToString(), font5));
                         }
-                        else
-                        {
-                            dt = DateTime.Parse(drItem["dtAccessionDate"].ToString());
-                            tableItem.AddCell(new Phrase(dt.ToShortDateString(), font5));
-                        }
-                        tableItem.AddCell(new Phrase(drItem["strA1"].ToString(), font5));
-                        tableItem.AddCell(new Phrase(drItem["strB1"].ToString(), font5));
-                        tableItem.AddCell(new Phrase(drItem["strCw1"].ToString(), font5));
-                        tableItem.AddCell(new Phrase(drItem["strDrb11"].ToString(), font5));
-                        tableItem.AddCell(new Phrase(drItem["strDRB3451"].ToString(), font5));
-                        tableItem.AddCell(new Phrase(drItem["strDqb11"].ToString(), font5));
-                        tableItem.AddCell(new Phrase(" ", font5));
-                        tableItem.AddCell(new Phrase(" ", font5));
-                        tableItem.AddCell(new Phrase(" ", font5));
-                        tableItem.AddCell(new Phrase(" ", font5));
-                        tableItem.AddCell(new Phrase(drItem["strA2"].ToString(), font5));
-                        tableItem.AddCell(new Phrase(drItem["strB2"].ToString(), font5));
-                        tableItem.AddCell(new Phrase(drItem["strCw2"].ToString(), font5));
-                        tableItem.AddCell(new Phrase(drItem["strDrb12"].ToString(), font5));
-                        tableItem.AddCell(new Phrase(drItem["strDRB3452"].ToString(), font5));
-                        tableItem.AddCell(new Phrase(drItem["strDqb12"].ToString(), font5));
                     }
-                }
-                document.Add(tableItem);
+                    document.Add(tableItem);
 
-                PdfPTable tableComment = new PdfPTable(2);
-                tableComment.SetWidths(new int[] { 10, 100 });
-                tableComment.SpacingAfter = 20;
-                tableComment.AddCell(new Phrase("Date", font4));
-                tableComment.AddCell(new Phrase("Comment", font4));
-                foreach (DataRow drComment in ds.Tables["ReportComments"].Rows)
-                {
-                    if (drRep.ItemArray[1].ToString() == drComment.ItemArray[1].ToString())
+                    PdfPTable tableComment = new PdfPTable(2);
+                    tableComment.SetWidths(new int[] { 10, 100 });
+                    tableComment.SpacingAfter = 20;
+                    tableComment.AddCell(new Phrase("Date", font6));
+                    tableComment.AddCell(new Phrase("Comment", font6));
+                    foreach (DataRow drComment in ds.Tables["ReportComments"].Rows)
                     {
-                        tableComment.AddCell(new Phrase(DateString(drComment["dtCommentDate"].ToString()), font5));
-                        tableComment.AddCell(new Phrase(drComment["strCommentText"].ToString(), font5));
+                        if (drRep.ItemArray[1].ToString() == drComment.ItemArray[1].ToString())
+                        {
+                            tableComment.AddCell(new Phrase(DateString(drComment["dtCommentDate"].ToString()), font5));
+                            tableComment.AddCell(new Phrase(drComment["strCommentText"].ToString(), font5));
+                        }
                     }
+                    document.Add(tableComment);
                 }
-                document.Add(tableComment);
+                document.Close();
             }
-            document.Close();
             listBox1.Items.Add("Report for " + aReportPk.ToString() + " complete.");
         }
 
