@@ -104,23 +104,22 @@ namespace HLAPtReportsExport
                 {
                     // Header table
                     PdfPTable tableRep = new PdfPTable(7);
-                    tableRep.SpacingBefore = 10;
-                    tableRep.SpacingAfter = 5;
-                    tableRep.SetWidths(new int[] { 12, 8, 40, 30, 40, 12, 12 });
-                    tableRep.AddCell(new Phrase("ReportId", font6));
+                    tableRep.SpacingBefore = 14;
+                    tableRep.SetWidths(new int[] { 10, 40, 30, 40, 12, 12, 8 });
                     tableRep.AddCell(new Phrase("Version", font6));
                     tableRep.AddCell(new Phrase("Report Name", font6));
                     tableRep.AddCell(new Phrase("Provider Name", font6));
                     tableRep.AddCell(new Phrase("Hospital Name", font6));
                     tableRep.AddCell(new Phrase("Original Date", font6));
                     tableRep.AddCell(new Phrase("Updated Date", font6));
-                    tableRep.AddCell(new Phrase(drRep["pkReportId"].ToString(), font5));
+                    tableRep.AddCell(new Phrase("PK", font6));
                     tableRep.AddCell(new Phrase(drRep["pkReportSeq"].ToString(), font5));
                     tableRep.AddCell(new Phrase(drRep["strreportname"].ToString(), font5));
                     tableRep.AddCell(new Phrase(drRep["strProviderName"].ToString(), font5));
                     tableRep.AddCell(new Phrase(drRep["strHospitalName"].ToString(), font5));
                     tableRep.AddCell(new Phrase(DateString(drRep["dtoriginaldate"].ToString()), font5));
                     tableRep.AddCell(new Phrase(DateString(drRep["dtupdateddate"].ToString()), font5));
+                    tableRep.AddCell(new Phrase(drRep["pkReportId"].ToString(), font5));
                     document.Add(tableRep);
 
                     // Items table
