@@ -1,2 +1,5 @@
 *.exe
 *.pdb
+HlaPtReportsExport/bin/
+HlaPtReportsExport/obj/
+
