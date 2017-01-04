@@ -31,10 +31,9 @@ namespace HLAPtReportsExport
             int reportYear, reportPk;
             int nbrReportsWritten = 0;
             string reportName;
-            const bool TOP20 = true;
             if (Int32.TryParse(textBox1.Text, out reportYear))
             {
-                string CS = ConfigurationManager.ConnectionStrings["DBCS"].ConnectionString;
+                string CS = ConfigurationManager.ConnectionStrings["HLA_DBCS"].ConnectionString;
                 DataSet dsReportPks = new DataSet();
                 using (SqlConnection conPk = new SqlConnection(CS))
                 {
@@ -44,7 +43,7 @@ namespace HLAPtReportsExport
                     da.Fill(dsReportPks);
                     foreach (DataRow dr in dsReportPks.Tables[0].Rows)
                     {
-                        if (TOP20 & (++nbrReportsWritten > 20)) break;
+                        if (cbTop20.Checked & (++nbrReportsWritten > 20)) break;
                         Int32.TryParse(dr.ItemArray[0].ToString(), out reportPk);
                         reportName = dr["strreportname"].ToString();
                         BuildReport(reportName, reportPk);
@@ -56,6 +55,9 @@ namespace HLAPtReportsExport
                 Console.WriteLine("Cannot convert input value to Year");
                 return;
             }
+            MessageBox.Show("Complete");
+
+
         }
 
         private void BuildReport(string reportName, int aReportPk)
@@ -80,7 +82,7 @@ namespace HLAPtReportsExport
             fileName = "PK" + aReportPk.ToString();
             foreach (DataRow dr in ds.Tables["ReportItems"].Rows)
             {
-                if (dr["strRelationToPt"].ToString().ToUpper() == "PATIENT")
+                if (dr["strRelationToPt"].ToString().ToUpper().Contains("PATIENT"))
                 {
                     if (dr["strrefnum"].ToString() !="")
                     {
@@ -98,14 +100,14 @@ namespace HLAPtReportsExport
                 iTextSharp.text.Font font5 = iTextSharp.text.FontFactory.GetFont(FontFactory.HELVETICA, 5);
                 iTextSharp.text.Font font6 = iTextSharp.text.FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 6);
                 iTextSharp.text.Font font14 = iTextSharp.text.FontFactory.GetFont(FontFactory.HELVETICA_BOLD, 14);
-                document.Add(new Paragraph(reportName, font14));
+                document.Add(new Paragraph(fileName, font14));
 
                 foreach (DataRow drRep in ds.Tables["ReportHdrs"].Rows)
                 {
                     // Header table
                     PdfPTable tableRep = new PdfPTable(7);
                     tableRep.SpacingBefore = 14;
-                    tableRep.SetWidths(new int[] { 10, 40, 30, 40, 12, 12, 8 });
+                    tableRep.SetWidths(new int[] { 12, 70, 30, 40, 12, 12, 8 });
                     tableRep.AddCell(new Phrase("Version", font6));
                     tableRep.AddCell(new Phrase("Report Name", font6));
                     tableRep.AddCell(new Phrase("Provider Name", font6));
@@ -123,13 +125,14 @@ namespace HLAPtReportsExport
                     document.Add(tableRep);
 
                     // Items table
-                    PdfPTable tableItem = new PdfPTable(10);
-                    tableItem.SetWidths(new int[] { 30, 10, 10, 10, 10, 10, 10, 10, 10, 10 });
+                    PdfPTable tableItem = new PdfPTable(11);
+                    tableItem.SetWidths(new int[] { 30, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10 });
                     tableItem.SpacingAfter = 5;
                     tableItem.AddCell(new Phrase("Name", font6));
                     tableItem.AddCell(new Phrase("Relation", font6));
                     tableItem.AddCell(new Phrase("R#", font6));
-                    tableItem.AddCell(new Phrase("Received Date", font6));
+                    tableItem.AddCell(new Phrase("Coll. Date", font6));
+                    tableItem.AddCell(new Phrase("Recv'd Date", font6));
                     tableItem.AddCell(new Phrase("A", font6));
                     tableItem.AddCell(new Phrase("B", font6));
                     tableItem.AddCell(new Phrase("C", font6));
@@ -143,13 +146,22 @@ namespace HLAPtReportsExport
                             tableItem.AddCell(new Phrase(drItem["strPersonname"].ToString(), font5));
                             tableItem.AddCell(new Phrase(drItem["strRelationToPt"].ToString(), font5));
                             tableItem.AddCell(new Phrase(drItem["strRefNum"].ToString(), font5));
-                            if (drItem["dtAccessionDate"].ToString() == "")
+                            if (drItem["sp_bleed"].ToString() == "")
                             {
                                 tableItem.AddCell(new Phrase(" ", font5));
                             }
                             else
                             {
-                                dt = DateTime.Parse(drItem["dtBleedDate"].ToString());
+                                dt = DateTime.Parse(drItem["sp_bleed"].ToString());
+                                tableItem.AddCell(new Phrase(dt.ToShortDateString(), font5));
+                            }
+                            if (drItem["sp_accession"].ToString() == "")
+                            {
+                                tableItem.AddCell(new Phrase(" ", font5));
+                            }
+                            else
+                            {
+                                dt = DateTime.Parse(drItem["sp_accession"].ToString());
                                 tableItem.AddCell(new Phrase(dt.ToShortDateString(), font5));
                             }
                             tableItem.AddCell(new Phrase(drItem["strA1"].ToString(), font5));
@@ -158,6 +170,7 @@ namespace HLAPtReportsExport
                             tableItem.AddCell(new Phrase(drItem["strDrb11"].ToString(), font5));
                             tableItem.AddCell(new Phrase(drItem["strDRB3451"].ToString(), font5));
                             tableItem.AddCell(new Phrase(drItem["strDqb11"].ToString(), font5));
+                            tableItem.AddCell(new Phrase(" ", font5));
                             tableItem.AddCell(new Phrase(" ", font5));
                             tableItem.AddCell(new Phrase(" ", font5));
                             tableItem.AddCell(new Phrase(" ", font5));
