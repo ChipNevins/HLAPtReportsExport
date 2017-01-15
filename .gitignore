@@ -1,5 +1,6 @@
 *.exe
 *.pdb
+*.suo
 HlaPtReportsExport/bin/
 HlaPtReportsExport/obj/
 
