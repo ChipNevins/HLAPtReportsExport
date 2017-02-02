@@ -37,9 +37,11 @@ namespace HLAPtReportsExport
                 DataSet dsReportPks = new DataSet();
                 using (SqlConnection conPk = new SqlConnection(CS))
                 {
-                    SqlDataAdapter da = new SqlDataAdapter("spGetPatientReportPkForYear", conPk);
+                    // get remaining calls a new SP with no args passed
+                    //SqlDataAdapter da = new SqlDataAdapter("spGetPatientReportPkForYear", conPk);
+                    SqlDataAdapter da = new SqlDataAdapter("spGetPatientReportPkRemaining",conPk);
                     da.SelectCommand.CommandType = CommandType.StoredProcedure;
-                    da.SelectCommand.Parameters.AddWithValue("@yearId", reportYear);
+                    //da.SelectCommand.Parameters.AddWithValue("@yearId", reportYear);
                     da.Fill(dsReportPks);
                     foreach (DataRow dr in dsReportPks.Tables[0].Rows)
                     {
