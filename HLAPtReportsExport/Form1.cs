@@ -59,7 +59,7 @@ namespace HLAPtReportsExport
                 Console.WriteLine("Cannot convert input value to Year");
                 return;
             }
-            MessageBox.Show("Complete");
+            MessageBox.Show("Completed");
 
 
         }
